@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.DirectoryServices.AccountManagement;
 using System.Linq;
 
 namespace Banking_Application
@@ -8,19 +9,75 @@ namespace Banking_Application
     {
         public static void Main(string[] args)
         {
-            
+            string domain = "ITSLIGO.LAN";
+            UserPrincipal currentUser = null;
+            bool isAuthenticated = false;
+
+            using (var adAuth = new ActiveDirectoryAuthenticator(domain))
+            {
+                for (int attempts = 0; attempts < 3 && !isAuthenticated; attempts++)
+                {
+                    Console.Write("Enter your AD username: ");
+                    string username = Console.ReadLine();
+                    Console.Write("Enter your AD password: ");
+                    string password = ReadPassword();
+
+                    if (adAuth.Authenticate(username, password, out currentUser))
+                    {
+                        if (adAuth.IsInRole(currentUser, "Bank Teller"))
+                        {
+                            isAuthenticated = true;
+                            EventLogger.LogAuth(username, true, "Bank Teller");
+                            Console.WriteLine("Login successful!");
+                        }
+                        else
+                        {
+                            EventLogger.LogAuth(username, false, "Not in Bank Teller group");
+                            Console.WriteLine("You are not in the Bank Teller group.");
+                        }
+                    }
+                    else
+                    {
+                        EventLogger.LogAuth(username, false, "Invalid credentials");
+                        Console.WriteLine("Login failed.");
+                    }
+                }
+            }
+
+            if (!isAuthenticated)
+            {
+                Console.WriteLine("Authentication failed. Exiting.");
+                return;
+            }
+
+            // Reading the password
+            static string ReadPassword()
+            {
+                string pass = "";
+                ConsoleKeyInfo key;
+                do
+                {
+                    key = Console.ReadKey(true);
+                    if (key.Key != ConsoleKey.Backspace && key.Key != ConsoleKey.Enter)
+                    {
+                        pass += key.KeyChar;
+                        Console.Write("*");
+                    }
+                    else if (key.Key == ConsoleKey.Backspace && pass.Length > 0)
+                    {
+                        pass = pass.Substring(0, pass.Length - 1);
+                        Console.Write("\b \b");
+                    }
+                } while (key.Key != ConsoleKey.Enter);
+                Console.WriteLine();
+                return pass;
+            }
+
+
             Data_Access_Layer dal = Data_Access_Layer.getInstance();
             dal.loadBankAccounts();
 
-            // ######################
-            // Simple teller name prompt so we can include WHO in the log.
-            // This will be replaced by proper AD auth later.
-            // ######################
-            Console.WriteLine("Enter your teller name (for logs): ");
-            string tellerName = Console.ReadLine();
-
-            if (string.IsNullOrWhiteSpace(tellerName))
-                tellerName = "Unknown Teller";
+            string tellerName = currentUser?.SamAccountName ?? "Unknown Teller";
 
             bool running = true;
 
@@ -228,15 +285,37 @@ namespace Banking_Application
                             do
                             {
 
-                                Console.WriteLine("Proceed With Delection (Y/N)?"); 
+                                Console.WriteLine("Proceed With Deletion (Y/N)?"); 
                                 ans = Console.ReadLine();
 
                                 switch (ans)
                                 {
+                                    // New deletion logic with admin approval
                                     case "Y":
                                     case "y":
-                                        dal.closeBankAccount(accNo);
-                                        EventLogger.LogTransaction(tellerName, accNo, ba.name, "Account Closure", ba.balance, "SUCCESS", "");
+                                        // Now it requires an admins approval before deletion
+                                        Console.WriteLine("Admin approval required to delete account.");
+                                        using (var adAuth = new ActiveDirectoryAuthenticator(domain))
+                                        {
+                                            Console.Write("Admin username: ");
+                                            string adminUser = Console.ReadLine();
+                                            Console.Write("Admin password: ");
+                                            string adminPass = ReadPassword();
+
+                                            if (adAuth.Authenticate(adminUser, adminPass, out var adminPrincipal) &&
+                                                adAuth.IsInRole(adminPrincipal, "Bank Teller Administrator"))
+                                            {
+                                                EventLogger.LogAuth(adminUser, true, "Bank Teller Administrator");
+                                                dal.closeBankAccount(accNo);
+                                                EventLogger.LogTransaction(tellerName, accNo, ba.name, "Account Closure", ba.balance, "SUCCESS", "");
+                                            }
+                                            else
+                                            {
+                                                EventLogger.LogAuth(adminUser, false, "Admin approval failed");
+                                                Console.WriteLine("Admin approval failed. Account not deleted.");
+                                                EventLogger.LogTransaction(tellerName, accNo, ba.name, "Account Closure", ba.balance, "FAIL", "Admin approval failed");
+                                            }
+                                        }
                                         break;
                                     case "N":
                                     case "n":

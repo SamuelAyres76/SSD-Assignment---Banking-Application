@@ -6,20 +6,12 @@ using System.Security.Principal;
 
 namespace Banking_Application
 {
-    // ######################
-    // Very small helper to write to the Windows Event Log in a simple way.
-    // I keep the strings easy to read because I am new to this.
-    // ######################
     public static class EventLogger
     {
         private const string SourceName = "SSD Banking Application";
         private const string LogName = "Application";
         private static bool _sourceReady = false;
 
-        // ######################
-        // Make sure the Event Log source exists. If I do not have admin rights
-        // the try/catch stops the whole app from crashing.
-        // ######################
         private static void EnsureSource()
         {
             if (_sourceReady)
@@ -65,9 +57,6 @@ namespace Banking_Application
             }
         }
 
-        // ######################
-        // Log authentication attempts (will be used later when AD auth is added).
-        // ######################
         public static void LogAuth(string username, string outcome, string machineInfo = "")
         {
             EnsureSource();
@@ -98,10 +87,6 @@ namespace Banking_Application
             }
         }
 
-        // ######################
-        // Get a simple IPv4 address for WHERE info.
-        // I keep this loop easy so I can understand it.
-        // ######################
         private static string GetLocalIp()
         {
             try
@@ -118,5 +103,24 @@ namespace Banking_Application
                 return "unknown";
             }
         }
+
+        public static void LogAuth(string username, bool success, string details)
+        {
+            string status = success ? "SUCCESS" : "FAIL";
+            string message = $"AUTH {status}: {username} - {details} - {DateTime.Now}";
+            try
+            {
+                string source = "SSD Banking Application";
+                if (!System.Diagnostics.EventLog.SourceExists(source))
+                    System.Diagnostics.EventLog.CreateEventSource(source, "Application");
+                System.Diagnostics.EventLog.WriteEntry(source, message,
+                    success ? System.Diagnostics.EventLogEntryType.Information : System.Diagnostics.EventLogEntryType.FailureAudit);
+            }
+            catch
+            {
+                // If event log write fails, ignore
+            }
+        }
+
     }
 }
