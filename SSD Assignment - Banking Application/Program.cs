@@ -11,6 +11,17 @@ namespace Banking_Application
             
             Data_Access_Layer dal = Data_Access_Layer.getInstance();
             dal.loadBankAccounts();
+
+            // ######################
+            // Simple teller name prompt so we can include WHO in the log.
+            // This will be replaced by proper AD auth later.
+            // ######################
+            Console.WriteLine("Enter your teller name (for logs): ");
+            string tellerName = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(tellerName))
+                tellerName = "Unknown Teller";
+
             bool running = true;
 
             do
@@ -193,6 +204,9 @@ namespace Banking_Application
 
                         Console.WriteLine("New Account Number Is: " + accNo);
 
+                        // Log the account creation
+                        EventLogger.LogTransaction(tellerName, accNo, ba.name, "Account Creation", balance, "SUCCESS", "");
+
                         break;
                     case "2":
                         Console.WriteLine("Enter Account Number: ");
@@ -203,6 +217,7 @@ namespace Banking_Application
                         if (ba is null)
                         {
                             Console.WriteLine("Account Does Not Exist");
+                            EventLogger.LogTransaction(tellerName, accNo, "Unknown", "Account Closure", 0, "FAIL", "Account not found");
                         }
                         else
                         {
@@ -219,10 +234,13 @@ namespace Banking_Application
                                 switch (ans)
                                 {
                                     case "Y":
-                                    case "y": dal.closeBankAccount(accNo);
+                                    case "y":
+                                        dal.closeBankAccount(accNo);
+                                        EventLogger.LogTransaction(tellerName, accNo, ba.name, "Account Closure", ba.balance, "SUCCESS", "");
                                         break;
                                     case "N":
                                     case "n":
+                                        EventLogger.LogTransaction(tellerName, accNo, ba.name, "Account Closure", ba.balance, "FAIL", "User cancelled");
                                         break;
                                     default:
                                         Console.WriteLine("INVALID OPTION CHOSEN - PLEASE TRY AGAIN");
@@ -241,10 +259,12 @@ namespace Banking_Application
                         if(ba is null) 
                         {
                             Console.WriteLine("Account Does Not Exist");
+                            EventLogger.LogTransaction(tellerName, accNo, "Unknown", "Balance Query", 0, "FAIL", "Account not found");
                         }
                         else
                         {
                             Console.WriteLine(ba.ToString());
+                            EventLogger.LogTransaction(tellerName, accNo, ba.name, "Balance Query", 0, "SUCCESS", "");
                         }
 
                         break;
@@ -257,6 +277,7 @@ namespace Banking_Application
                         if (ba is null)
                         {
                             Console.WriteLine("Account Does Not Exist");
+                            EventLogger.LogTransaction(tellerName, accNo, "Unknown", "Lodgement", 0, "FAIL", "Account not found");
                         }
                         else
                         {
@@ -284,7 +305,15 @@ namespace Banking_Application
 
                             } while (amountToLodge < 0);
 
+                            String reason = "";
+                            if (amountToLodge >= 10000)
+                            {
+                                Console.WriteLine("Enter reason for >€10k lodgement (optional but recommended): ");
+                                reason = Console.ReadLine();
+                            }
+
                             dal.lodge(accNo, amountToLodge);
+                            EventLogger.LogTransaction(tellerName, accNo, ba.name, "Lodgement", amountToLodge, "SUCCESS", reason);
                         }
                         break;
                     case "5": //Withdraw
@@ -296,6 +325,7 @@ namespace Banking_Application
                         if (ba is null)
                         {
                             Console.WriteLine("Account Does Not Exist");
+                            EventLogger.LogTransaction(tellerName, accNo, "Unknown", "Withdrawal", 0, "FAIL", "Account not found");
                         }
                         else
                         {
@@ -323,12 +353,24 @@ namespace Banking_Application
 
                             } while (amountToWithdraw < 0);
 
+                            String reason = "";
+                            if (amountToWithdraw >= 10000)
+                            {
+                                Console.WriteLine("Enter reason for >€10k withdrawal (optional but recommended): ");
+                                reason = Console.ReadLine();
+                            }
+
                             bool withdrawalOK = dal.withdraw(accNo, amountToWithdraw);
 
                             if(withdrawalOK == false)
                             {
 
                                 Console.WriteLine("Insufficient Funds Available.");
+                                EventLogger.LogTransaction(tellerName, accNo, ba.name, "Withdrawal", amountToWithdraw, "FAIL", "Insufficient funds");
+                            }
+                            else
+                            {
+                                EventLogger.LogTransaction(tellerName, accNo, ba.name, "Withdrawal", amountToWithdraw, "SUCCESS", reason);
                             }
                         }
                         break;

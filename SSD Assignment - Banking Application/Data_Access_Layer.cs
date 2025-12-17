@@ -27,15 +27,13 @@ namespace Banking_Application
 
         private SqliteConnection getDatabaseConnection()
         {
-
+            // Standard connection, no SQLCipher password (ALE is used instead)
             String databaseConnectionString = new SqliteConnectionStringBuilder()
             {
                 DataSource = Data_Access_Layer.databaseName,
                 Mode = SqliteOpenMode.ReadWriteCreate
             }.ToString();
-
             return new SqliteConnection(databaseConnectionString);
-
         }
 
         private void initialiseDatabase()
@@ -71,28 +69,24 @@ namespace Banking_Application
                 initialiseDatabase();
             else
             {
-
                 using (var connection = getDatabaseConnection())
                 {
                     connection.Open();
                     var command = connection.CreateCommand();
                     command.CommandText = "SELECT * FROM Bank_Accounts";
                     SqliteDataReader dr = command.ExecuteReader();
-                    
                     while(dr.Read())
                     {
-
                         int accountType = dr.GetInt16(7);
-
                         if(accountType == Account_Type.Current_Account)
                         {
                             Current_Account ca = new Current_Account();
                             ca.accountNo = dr.GetString(0);
-                            ca.name = dr.GetString(1);
-                            ca.address_line_1 = dr.GetString(2);
-                            ca.address_line_2 = dr.GetString(3);
-                            ca.address_line_3 = dr.GetString(4);
-                            ca.town = dr.GetString(5);
+                            ca.name = EncryptionConfig.DecryptString(dr.GetString(1));
+                            ca.address_line_1 = EncryptionConfig.DecryptString(dr.GetString(2));
+                            ca.address_line_2 = EncryptionConfig.DecryptString(dr.GetString(3));
+                            ca.address_line_3 = EncryptionConfig.DecryptString(dr.GetString(4));
+                            ca.town = EncryptionConfig.DecryptString(dr.GetString(5));
                             ca.balance = dr.GetDouble(6);
                             ca.overdraftAmount = dr.GetDouble(8);
                             accounts.Add(ca);
@@ -101,26 +95,28 @@ namespace Banking_Application
                         {
                             Savings_Account sa = new Savings_Account();
                             sa.accountNo = dr.GetString(0);
-                            sa.name = dr.GetString(1);
-                            sa.address_line_1 = dr.GetString(2);
-                            sa.address_line_2 = dr.GetString(3);
-                            sa.address_line_3 = dr.GetString(4);
-                            sa.town = dr.GetString(5);
+                            sa.name = EncryptionConfig.DecryptString(dr.GetString(1));
+                            sa.address_line_1 = EncryptionConfig.DecryptString(dr.GetString(2));
+                            sa.address_line_2 = EncryptionConfig.DecryptString(dr.GetString(3));
+                            sa.address_line_3 = EncryptionConfig.DecryptString(dr.GetString(4));
+                            sa.town = EncryptionConfig.DecryptString(dr.GetString(5));
                             sa.balance = dr.GetDouble(6);
                             sa.interestRate = dr.GetDouble(9);
                             accounts.Add(sa);
                         }
-
-
                     }
-
                 }
-
             }
         }
 
         public String addBankAccount(Bank_Account ba) 
         {
+            // Encrypt PII fields before storing
+            string encName = EncryptionConfig.EncryptString(ba.name);
+            string encAddr1 = EncryptionConfig.EncryptString(ba.address_line_1);
+            string encAddr2 = EncryptionConfig.EncryptString(ba.address_line_2);
+            string encAddr3 = EncryptionConfig.EncryptString(ba.address_line_3);
+            string encTown = EncryptionConfig.EncryptString(ba.town);
 
             if (ba.GetType() == typeof(Current_Account))
                 ba = (Current_Account)ba;
@@ -137,11 +133,11 @@ namespace Banking_Application
                 @"
                     INSERT INTO Bank_Accounts VALUES(" +
                     "'" + ba.accountNo + "', " +
-                    "'" + ba.name + "', " +
-                    "'" + ba.address_line_1 + "', " +
-                    "'" + ba.address_line_2 + "', " +
-                    "'" + ba.address_line_3 + "', " +
-                    "'" + ba.town + "', " +
+                    "'" + encName + "', " +
+                    "'" + encAddr1 + "', " +
+                    "'" + encAddr2 + "', " +
+                    "'" + encAddr3 + "', " +
+                    "'" + encTown + "', " +
                     ba.balance + ", " +
                     (ba.GetType() == typeof(Current_Account) ? 1 : 2) + ", ";
 
@@ -150,19 +146,14 @@ namespace Banking_Application
                     Current_Account ca = (Current_Account)ba;
                     command.CommandText += ca.overdraftAmount + ", NULL)";
                 }
-
                 else
                 {
                     Savings_Account sa = (Savings_Account)ba;
                     command.CommandText += "NULL," + sa.interestRate + ")";
                 }
-
                 command.ExecuteNonQuery();
-
             }
-
             return ba.accountNo;
-
         }
 
         public Bank_Account findBankAccountByAccNo(String accNo) 
