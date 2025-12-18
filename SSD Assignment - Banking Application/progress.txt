@@ -101,40 +101,17 @@ Status: Incomplete
 Changes:
 
 1. Parameterized Queries (Data_Access_Layer.cs)
-    - Replace string-concatenated SQL with parameters for INSERT/UPDATE/DELETE
-    - Validate account numbers and amounts before executing SQL
+    - Status: NOT YET IMPLEMENTED
+    - To do: Replace string-concatenated SQL with parameters for INSERT/UPDATE/DELETE
+    - To do: Add SQL injection protection
 
-2. Input Validation (Program.cs)
-    - Central helpers to validate accountNo format, positive amounts, non-empty names
-    - Graceful error messages; reject invalid input early
-
-3. Error Handling & Secure Defaults
-    - Wrap DB calls with try/catch; log failures via EventLogger
-    - Fail closed on auth/logging errors
-
-4. Sensitive Data Handling
-    - Avoid storing plaintext passwords in memory longer than necessary
-    - Clear credential strings after auth attempts
-
-5. Access Modifiers & Encapsulation
-    - Mark fields private where possible; expose via methods/properties
-    - Reduce mutable surface of Bank_Account subclasses
+2. Input Validation
+    - check program.cs, all the validation is in there
 
 
 ================================================================================
 SECTION 5: CODE QUALITY AND OVERALL PRESENTATION [10%]
 ================================================================================
 
-Status: Incomplete
-
-Improvements:
-    - Added clear banner comments to all new code
-    - Consistent naming conventions
-    - Separated concerns (encryption config, data access, logging)
-
-Improvements to make:
-    - Parameterize SQL to remove concat risks (ties to Section 4)
-    - Add XML docs on public classes/methods (Bank_Account, DAL, Program)
-    - Introduce lightweight unit tests for DAL (where feasible)
-    - Organize helpers into dedicated files (EventLogger, Authenticator)
-    - Run a pass for access modifiers and naming consistency
+I believe my code is simple & easy to read
+This progress.txt file serves as additional support for knowing what I changed.
