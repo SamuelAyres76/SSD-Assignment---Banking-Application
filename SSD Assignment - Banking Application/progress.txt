@@ -66,31 +66,30 @@ Issues?
 
 
 ================================================================================
-SECTION 3: AUTHENTICATION/ACCESS CONTROLS [10%]
+SECTION 3: Authentication
 ================================================================================
 
 Status: Done!
 
+1. Active Directory Users and Computers
+    - New Bank Teller Administrator: samuelayres@ITSLIGO.LAN
+    - New Bank Teller: johndoe@ITSLIGO.LAN
+
+    Password for both: test1234?
+    (yes this is a horrific password choice, especially for the subject I just did it for, but I kept it simple for the project)
+
 Changes:
 
-1. ActiveDirectoryAuthenticator.cs (new file)
-    - Method: Authenticate(username, password) → bool + user principal info
-    - Method: IsInRole(user, "Bank Teller") and "Bank Teller Administrator"
-    - Uses System.DirectoryServices.AccountManagement (handle dispose)
+1. ActiveDirectoryAuthenticator.cs
+    - I created this file
+    - NuGet Package Manager: added System.DirectoryServices.AccountManagement
 
-2. Program.cs (modify)
-    - Prompt for AD creds at startup; block app if auth fails
+2. Program.cs
+    - I modified this file
+    - Prompt for AD info on startup.
     - Enforce role check before showing main menu
-    - For account deletion: require secondary approval from Admin role
-    - On every auth attempt: call EventLogger.LogAuth
-
-3. Data_Access_Layer.cs (no change expected)
-    - Access enforced at Program layer; DAL remains role-agnostic
-
-How?
-    - Only AD-authenticated Bank Tellers can perform transactions
-    - Deletion path requires Admin confirmation (two-person integrity lite)
-    - All auth outcomes are logged for audit
+    - For account deletion: require secondary approval from the Bank Tell Administrator role (samuelayres@ITSLIGO.LAN)
+    - On every authentication attempt: call the EventLogger.LogAuth
 
 
 ================================================================================
