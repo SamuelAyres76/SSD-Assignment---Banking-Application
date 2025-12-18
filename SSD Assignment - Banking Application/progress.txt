@@ -96,7 +96,7 @@ Changes:
 SECTION 4: ADDITIONAL SECURITY CONTROLS [30%]
 ================================================================================
 
-Status: Incomplete
+Status: Complete
 
 Changes:
 
@@ -105,7 +105,7 @@ Changes:
     - To do: Replace string-concatenated SQL with parameters for INSERT/UPDATE/DELETE
     - To do: Add SQL injection protection
 
-2. Input Validation
+2. Lot's of Input Validation
     - check program.cs, all the validation is in there
 
 
