@@ -32,11 +32,7 @@ namespace Banking_Application
             }
         }
 
-        // ######################
         // Log any banking transaction (add/close/lodge/withdraw/view)
-        // WHO: teller + account holder, WHAT: transaction type, WHERE: machine info,
-        // WHEN: UTC timestamp, WHY: optional reason for >€10k, HOW: app metadata.
-        // ######################
         public static void LogTransaction(string teller, string accountNo, string accountHolder, string transactionType, double amount, string status, string reasonOptional = "", string extra = "")
         {
             EnsureSource();

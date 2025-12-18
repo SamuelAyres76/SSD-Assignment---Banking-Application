@@ -26,7 +26,7 @@ public class ActiveDirectoryAuthenticator : IDisposable
         }
         catch
         {
-            // Nada
+            // Do Nada
         }
         return false;
     }
