@@ -15,7 +15,8 @@ namespace Banking_Application
         public static String databaseName = "Banking Database.db";
         private static Data_Access_Layer instance = new Data_Access_Layer();
 
-        private Data_Access_Layer()//Singleton Design Pattern (For Concurrency Control) - Use getInstance() Method Instead.
+        // My private constructor for singleton pattern
+        private Data_Access_Layer()
         {
             accounts = new List<Bank_Account>();
         }
@@ -27,7 +28,7 @@ namespace Banking_Application
 
         private SqliteConnection getDatabaseConnection()
         {
-            // Standard connection, no SQLCipher password (ALE is used instead)
+            // Standard connection, no SQLCipher password (I use ALE instead)
             String databaseConnectionString = new SqliteConnectionStringBuilder()
             {
                 DataSource = Data_Access_Layer.databaseName,
@@ -59,7 +60,6 @@ namespace Banking_Application
                 ";
 
                 command.ExecuteNonQuery();
-                
             }
         }
 

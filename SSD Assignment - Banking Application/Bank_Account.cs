@@ -8,7 +8,7 @@ namespace Banking_Application
 {
     public abstract class Bank_Account
     {
-
+        // Variables
         public String accountNo;
         public String name;
         public String address_line_1;

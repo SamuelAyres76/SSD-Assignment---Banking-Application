@@ -114,7 +114,7 @@ namespace Banking_Application
             }
             catch
             {
-                // If event log write fails, ignore
+                // Do nada
             }
         }
 

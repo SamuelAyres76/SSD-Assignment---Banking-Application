@@ -3,7 +3,7 @@ using System;
 namespace Banking_Application
 {
     // ###############################################################
-    // Application-Level Encryption (ALE) jhas been implemented here
+    // Application-Level Encryption (ALE)
     // ###############################################################
     using System.Security.Cryptography;
     using System.IO;

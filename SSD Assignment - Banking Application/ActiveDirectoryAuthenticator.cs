@@ -31,7 +31,7 @@ public class ActiveDirectoryAuthenticator : IDisposable
         return false;
     }
 
-    // Check if user is in a specific AD group
+    // Check if the user is in a specific AD group
     public bool IsInRole(UserPrincipal user, string groupName)
     {
         if (user == null) return false;
