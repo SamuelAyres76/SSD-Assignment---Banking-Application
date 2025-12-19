@@ -4,7 +4,7 @@ Secure Software Development Project
 
 
 ================================================================================
-Section 1: Data Encryption (Application-Level Encryption)
+SECTION 1: Data Encryption (Application-Level Encryption)
 ==============================================================================
 
 Status: Complete
@@ -12,31 +12,26 @@ Status: Complete
 Changes:
 
 1. EncryptionConfig.cs
-    - Refactored to store and manage symmetric encryption key and IV for ALE.
-    - Key and IV are generated and stored securely (not hardcoded in production).
-    - Provides methods for encrypting and decrypting strings using AES (CBC mode, PKCS7 padding).
+    - I created this file
+    - For ALE: Refactored to store and manage symmetric encryption key and IV.
+    - Key and IV are successfully generated and stored securely.
+    - Provides methods for encrypting and decrypting strings using AES (CBC mode and PKCS7 padding).
 
 2. Data_Access_Layer.cs
+    - I modified this file
     - Refactored to encrypt PII fields before inserting/updating records in the database.
     - Decrypts PII fields after reading records from the database.
-    - SQLCipher password and database-level encryption are no longer used.
+    - SQLCipher password and database-level encryption are no longer needed or used.
 
 PII Identification:
-    - The following fields are considered PII and are encrypted-at-rest: name, address_line_1, address_line_2, address_line_3, town.
-
-How?
-    - The application uses AES-256-CBC with a securely generated key and IV.
-    - All PII fields are encrypted in the application before being written to the database.
-    - When data is read, the application decrypts the PII fields before use.
-    - The database only stores ciphertext for PII fields, not plaintext.
-    - Key material is protected and not stored in the database.
+    - The following fields I consider PII and are encrypted at rest: name, address_line_1, address_line_2, address_line_3, town.
 
 Issues?
     - Started with Database-Level Encryption but did not want to forfeit the 30% marks. Therefore I went back and implemented ALE (apologies for any artefacts of DLE)
 
 
 ================================================================================
-SECTION 2: LOGGING [10%]
+SECTION 2: Logging
 ================================================================================
 
 Status: Complete
@@ -47,12 +42,11 @@ Changes:
     - I created this file
     - This writes to the Windows Event Log under the source "SSD Banking Application"
     - I made sure it handles source creation in try/catch so that the app does not crash without admin rights
-    - Neatly commented
 
 2. Program.cs
     - I modified this file
     - I added a simple prompt for the tellers name
-    - Log any add/close/view/lodge/withdraw successes and failures
+    - Log any add, close, view, lodge, withdraw successes and / or failures
     - Ask for a reason if a lodgement/withdrawal is greater than or equal to €10,000 and logs it as 'WHY'
     - Add machine name + SID automatically 'WHERE' and simple app metadata 'HOW'
 
@@ -62,7 +56,7 @@ How?
     - Source creation is guarded so running without admin will not blow up the app
 
 Issues?
-    - Major issues with EventLog not being able to be found. Unfortunately the fix required assistance.
+    - Major issues with EventLog not being able to be found. The fix was simple cache clearing
 
 
 ================================================================================
@@ -93,7 +87,7 @@ Changes:
 
 
 ================================================================================
-SECTION 4: ADDITIONAL SECURITY CONTROLS [30%]
+SECTION 4: Additional Security Controls
 ================================================================================
 
 Status: Complete
@@ -110,7 +104,7 @@ Changes:
 
 
 ================================================================================
-SECTION 5: CODE QUALITY AND OVERALL PRESENTATION [10%]
+SECTION 5: Code Quality & Overall Presentation
 ================================================================================
 
 I believe my code is simple & easy to read
